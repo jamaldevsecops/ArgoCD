@@ -1,8 +1,9 @@
+# Deployment for myapp
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myapp-deployment
-  namespace: default # You can change this to your specific namespace
+  namespace: myapp # You can change this to your specific namespace
 spec:
   replicas: 1
   strategy:
@@ -29,12 +30,12 @@ spec:
             memory: "1Gi"
             cpu: "1"
 ---
-
+# HPA for myapp
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: myapp-hpa
-  namespace: default
+  namespace: myapp
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
