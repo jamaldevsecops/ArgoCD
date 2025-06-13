@@ -1,0 +1,47 @@
+# Service for myapp
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp-service
+  namespace: myapp
+  labels:
+    app: myapp
+spec:
+  type: ClusterIP  
+  selector:
+    app: myapp
+  ports:
+    - protocol: TCP
+      port: 8080            
+      targetPort: 80    
+---
+# Ingress Resource for myapp
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myapp-ingress
+  namespace: myapp
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - myapp.apsissolutions.com
+    secretName: apsis-tls
+  rules:
+  - host: myapp.apsissolutions.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: myapp-service
+            port:
+              number: 8080
+
+
