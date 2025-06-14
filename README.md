@@ -1,5 +1,5 @@
 # ArgoCD: Overview, Features, and Benefits
-![image](https://github.com/user-attachments/assets/4a191363-36aa-406d-af16-98acf1c2fb75)
+![image](https://github.com/user-attachments/assets/30625132-4d15-46b1-8714-d17aab42f7df)
 
 ## What is ArgoCD?
 
