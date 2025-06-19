@@ -4,10 +4,10 @@ kind: Deployment
 metadata:
   name: myapp-deployment
   namespace: myapp # You can change this to your specific namespace
-  annotations:
-  argocd-image-updater.argoproj.io/image-list: docker.io/jamaldevsecops/static-site:blue # Instructs Argo CD Image Updater to track this image
-  argocd-image-updater.argoproj.io/update-strategy: digest # Use digest strategy to track changes even if tag remains ":latest"
-  argocd-image-updater.argoproj.io/write-back-method: git # Write changes back to Git (if Git repo was connected with write access)  
+  #annotations:
+  #argocd-image-updater.argoproj.io/image-list: docker.io/jamaldevsecops/static-site:blue # Instructs Argo CD Image Updater to track this image
+  #argocd-image-updater.argoproj.io/update-strategy: digest # Use digest strategy to track changes even if tag remains ":latest"
+  #argocd-image-updater.argoproj.io/write-back-method: git # Write changes back to Git (if Git repo was connected with write access)  
 spec:
   replicas: 2
   strategy:
