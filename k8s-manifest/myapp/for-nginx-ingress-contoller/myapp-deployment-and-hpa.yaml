@@ -25,18 +25,18 @@ spec:
     spec:
       containers:
       - name: myapp
-        image: jamaldevsecops/static-site:green
+        image: jamaldevsecops/myapp:v1.1
         ports:
         - containerPort: 80
-        resources:
-          requests:
-            memory: "16Mi"
-            cpu: "50m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
-      imagePullSecrets:
-      - name: privatedockerhubcred
+        #resources:
+          #requests:
+            #memory: "16Mi"
+            #cpu: "50m"
+          #limits:
+            #memory: "1Gi"
+            #cpu: "1"
+      #imagePullSecrets:
+      #- name: privatedockerhubcred
 ---
 # HPA for myapp
 apiVersion: autoscaling/v2
