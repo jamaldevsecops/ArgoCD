@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: myapp
-        image: jamaldevsecops/myapp:v1.2
+        image: jamaldevsecops/myapp
         ports:
         - containerPort: 80
         #resources:
