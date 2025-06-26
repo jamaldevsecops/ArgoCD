@@ -43,92 +43,62 @@ To create a DockerHub PAT with read-only permission for tracking private images:
 4. Generate and save the token (e.g., `dckr_pat_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`).
 
 ## 4. Namespace and DockerHub Secret for Pulling Private Image
-Create the `myapp` namespace and a DockerHub image pull secret named `dockerhub-pull-secret`.
-
-**YAML Manifest**:
-```yaml
+Create the `myapp` namespace and a DockerHub image pull secret named `mygithub-creds`.
+```bash
 # Creating the myapp namespace and DockerHub image pull secret
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: myapp
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: dockerhub-pull-secret
-  namespace: myapp
-type: kubernetes.io/dockerconfigjson
-data:
-  .dockerconfigjson: <base64-encoded-docker-config>
+kubectl create namespace myapp
 ```
-
-**Steps**:
-1. Create the Docker config JSON:
-   ```bash
-   echo -n '{"auths":{"https://index.docker.io/v1/":{"username":"your-username","password":"your-dockerhub-pat"}}}' | base64
-   ```
-   Replace `your-username` and `your-dockerhub-pat` with your credentials.
-2. Replace `<base64-encoded-docker-config>` in the YAML.
-3. Apply:
-   ```bash
-   kubectl apply -f myapp-namespace-and-pull-secret.yaml
-   ```
-
+```bash
+kubectl create secret docker-registry mydockerhub-creds \
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username="jamaldevsecops" \
+  --docker-password="dckr_pat_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" \
+  -n "myapp"
+```
 ## 5. DockerHub Secret for Argo CD Image Updater to Track Image
 Create a Kubernetes secret for Argo CD Image Updater to authenticate to DockerHub.
 
-**YAML Manifest**:
-```yaml
-# Kubernetes secret for Argo CD Image Updater to access DockerHub
-apiVersion: v1
-kind: Secret
-metadata:
-  name: dockerhub-image-updater-secret
-  namespace: argocd
-type: Opaque
-stringData:
-  registry: docker.io
-  username: your-username
-  password: your-dockerhub-pat
+```bash
+kubectl create secret docker-registry mydockerhub-creds \
+  --docker-server=https://index.docker.io/v1/ \
+  --docker-username="jamaldevsecops" \
+  --docker-password="dckr_pat_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" \
+  -n "argocd"
 ```
 
 **Steps**:
-1. Replace `your-username` and `your-dockerhub-pat`.
-2. Apply:
-   ```bash
-   kubectl apply -f dockerhub-image-updater-secret.yaml
-   ```
+Replace `jamaldevsecops` and `your-dockerhub-pat`.
+
+**Notes**:
+- If Image is public then no required to create this dockerhub secret for argocd.
 
 ## 6. Argo CD Image Updater ConfigMap
 Configure Argo CD Image Updater to track DockerHub with polling and Git write-back.
 
-**YAML Manifest**:
-```yaml
-# ConfigMap for Argo CD Image Updater
+```bash
+kubectl -n argocd delete configmap argocd-image-updater-config
+```
+```bash
+cat > argocd-image-updater-config.yaml << EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-image-updater-config
   namespace: argocd
 data:
-  config.yml: |
+  log.level: info
+  registries.conf: |
     registries:
-      - name: docker.io
-        api_url: https://registry-1.docker.io
-        credentials: secret:argocd/dockerhub-image-updater-secret
+      - name: Docker Hub
         prefix: docker.io
-    applications:
-      myapp:
-        interval: 2m
-        write_back_method: git
-        git_branch: main
-        git_commit_message: "Update image tags by Argo CD Image Updater [skip ci]"
-        allow_tags: regexp:^v[0-9]+\.[0-9]+$
+        api_url: https://index.docker.io/v1/
+        ping: yes
+        credentials: mydockerhub-creds
+EOF
 ```
 
 **Steps**:
-1. Apply:
+Apply:
    ```bash
    kubectl apply -f argocd-image-updater-config.yaml
    ```
@@ -136,28 +106,13 @@ data:
 ## 7. GitHub Secret for Argo CD Image Updater (Write Access)
 Create a secret for Argo CD Image Updater to push updates to `kustomization.yaml`.
 
-**YAML Manifest**:
-```yaml
+```bash
 # Kubernetes secret for GitHub write access
-apiVersion: v1
-kind: Secret
-metadata:
-  name: github-writer-secret
-  namespace: argocd
-type: Opaque
-stringData:
-  type: github
-  url: https://github.com/jamaldevsecops/kubernetes
-  username: your-github-username
-  password: your-github-pat
+kubectl create secret generic mygithub-creds \
+  --namespace argocd \
+  --from-literal=username=Jamal-Apsis \
+  --from-literal=password=ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
-
-**Steps**:
-1. Replace `your-github-username` and `your-github-pat`.
-2. Apply:
-   ```bash
-   kubectl apply -f github-writer-secret.yaml
-   ```
 
 ## 8. Argo CD Project YAML
 Define an Argo CD Project to restrict syncs to the `myapp` namespace.
@@ -168,21 +123,21 @@ Define an Argo CD Project to restrict syncs to the `myapp` namespace.
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: myapp-project
+  name: myapp
   namespace: argocd
 spec:
   description: Project for myapp application
   sourceRepos:
-  - https://github.com/jamaldevsecops/kubernetes
+    - https://github.com/jamaldevsecops/kubernetes.git
   destinations:
-  - namespace: myapp
-    server: https://kubernetes.default.svc
+    - namespace: '*'
+      server: https://kubernetes.default.svc
   clusterResourceWhitelist:
-  - group: '*'
-    kind: '*'
+    - group: '*'
+      kind: '*'
   namespaceResourceWhitelist:
-  - group: '*'
-    kind: '*'
+    - group: '*'
+      kind: '*'
 ```
 
 **Steps**:
@@ -191,7 +146,7 @@ spec:
    kubectl apply -f myapp-project.yaml
    ```
 
-## 9. Argo CD Application YAML with Multi-Image Update Strategy
+## 9. Argo CD Application YAML with Multi-Image Update Strategy (Sementic Version)
 Define an Argo CD Application to track two images with different strategies.
 
 **YAML Manifest**:
@@ -203,19 +158,30 @@ metadata:
   name: myapp
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: frontend=jamaldevsecops/myapp-frontend,backend=jamaldevsecops/myapp-backend
-    argocd-image-updater.argoproj.io/frontend.update-strategy: semver:v1.x
-    argocd-image-updater.argoproj.io/backend.update-strategy: digest
-    argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/git-branch: main
-    argocd-image-updater.argoproj.io/write-back-target: kustomization:argocd/k8s-manifest/myapp/kustomization.yaml
-    argocd-image-updater.argoproj.io/git-secret: github-writer-secret
+    # Image list with semver tags
+    argocd-image-updater.argoproj.io/image-list: |
+      myapp-frontend=docker.io/jamaldevsecops/myapp-frontend:v1.x,
+      myapp-backend=docker.io/jamaldevsecops/myapp-backend:v1.x
+
+    # Git write-back settings
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/mygit-creds
+    argocd-image-updater.argoproj.io/git-branch: master
+
+    # Use semver strategy for both images
+    argocd-image-updater.argoproj.io/myapp-frontend.update-strategy: semver
+    argocd-image-updater.argoproj.io/myapp-backend.update-strategy: semver
+
+    # Optional: force update if needed
+    argocd-image-updater.argoproj.io/myapp-frontend.force-update: "true"
+    argocd-image-updater.argoproj.io/myapp-backend.force-update: "true"
+
 spec:
-  project: myapp-project
+  project: myapp
   source:
-    repoURL: https://github.com/jamaldevsecops/kubernetes
+    repoURL: https://github.com/jamaldevsecops/kubernetes.git
+    targetRevision: HEAD
     path: argocd/k8s-manifest/myapp
-    targetRevision: main
+    kustomize: {}  # Optional, but explicit for Kustomize-based apps
   destination:
     server: https://kubernetes.default.svc
     namespace: myapp
@@ -239,127 +205,99 @@ Define a `kustomization.yaml` to include specified resources.
 # Kustomization file for myapp
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
 resources:
-- myapp-frontend-deployment-hpa-service.yaml
-- myapp-backend-deployment-hpa-service.yaml
-- myapp-nginx-ingress.yaml
+  - myapp-frontend-deployment-hpa-service.yaml
+  - myapp-backend-deployment-hpa-service.yaml
+  - myapp-nginx-ingress.yaml
+
+images:
+  - name: docker.io/jamaldevsecops/myapp-frontend
+    newTag: v1.1  # Placeholder; will be updated by Argo CD Image Updater
+  - name: docker.io/jamaldevsecops/myapp-backend
+    newTag: v1.1  # Placeholder; will be updated by Argo CD Image Updater
 ```
 
 **Steps**:
 1. Ensure listed files exist in `argocd/k8s-manifest/myapp`.
 2. Commit and push to the repository.
 
-## 11. Adjust Deployment YAML for Argo CD Image Updater Annotations
-Sample Deployment YAML with Image Updater annotations and best practices.
+## 11. Adjust Deployment YAML Image Pull Secret
+Sample Deployment YAML `myapp-frontend-deployment-hpa-service.yaml` with `imagePullSecrets`.
 
 **YAML Manifest**:
 ```yaml
-# Sample Kubernetes Deployment with Image Updater annotations
+# Deployment for myapp
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myapp-frontend
-  namespace: myapp
-  labels:
-    app: myapp-frontend
-  annotations:
-    argocd-image-updater.argoproj.io/image-name: jamaldevsecops/myapp-frontend
-    argocd-image-updater.argoproj.io/update-strategy: semver:v1.x
+  name: myapp-deployment
+  namespace: myapp # You can change this to your specific namespace
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   selector:
     matchLabels:
-      app: myapp-frontend
+      app: myapp
   template:
     metadata:
       labels:
-        app: myapp-frontend
+        app: myapp
     spec:
-      imagePullSecrets:
-      - name: dockerhub-pull-secret
       containers:
-      - name: myapp-frontend
-        image: jamaldevsecops/myapp-frontend:v1.0.0
+      - name: myapp
+        image: docker.io/jamaldevsecops/myapp
         ports:
-        - containerPort: 8080
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - containerPort: 80
+        #resources:
+          #requests:
+            #memory: "16Mi"
+            #cpu: "50m"
+          #limits:
+            #memory: "1Gi"
+            #cpu: "1"
+      imagePullSecrets:
+      - name: mydockerhub-creds
 ```
 
 **Notes**:
-- Add similar annotations to `myapp-backend-deployment-hpa-service.yaml` with `update-strategy: digest`.
-- Update image and probes as needed.
+- Add similar configuration to `myapp-backend-deployment-hpa-service.yaml` with `update-strategy: digest`.
+- If Image is public then remove `imagePullSecrets`.
 
 ## 12. TLS Secret for myapp Namespace
 Create a TLS secret for Ingress.
 
 **Command**:
 ```bash
-kubectl -n myapp create secret tls myapp-tls --cert=/path/to/cert.pem --key=/path/to/key.pem
+kubectl -n myapp create secret tls myapp-tls --cert=/path/to/CA_chain.crt --key=/path/to/key.pem
 ```
-
-**Alternative YAML**:
-```yaml
-# TLS secret for myapp Ingress
-apiVersion: v1
-kind: Secret
-metadata:
-  name: myapp-tls
-  namespace: myapp
-type: kubernetes.io/tls
-data:
-  tls.crt: <base64-encoded-cert>
-  tls.key: <base64-encoded-key>
-```
-
-**Steps**:
-1. Encode certificate and key:
-   ```bash
-   cat /path/to/cert.pem | base64
-   cat /path/to/key.pem | base64
-   ```
-2. Replace placeholders in the YAML.
-3. Apply:
-   ```bash
-   kubectl apply -f myapp-tls-secret.yaml
-   ```
 
 ## 13. Access the Application via HTTPS Ingress
 Access the application using the Ingress resource and TLS.
 
 **Sample Ingress YAML**:
 ```yaml
-# Ingress for myapp with TLS
+ # Ingress Resource for myapp
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: myapp-nginx-ingress
+  name: myapp-ingress
   namespace: myapp
   annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
     - myapp.apsissolutions.com
-    secretName: myapp-tls
+    secretName: apsis-tls
   rules:
   - host: myapp.apsissolutions.com
     http:
@@ -368,9 +306,9 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: myapp-frontend-service
+            name: myapp-service
             port:
-              number: 8080
+              number: 80
 ```
 
 **Steps**:
@@ -387,4 +325,3 @@ spec:
 - Verify TLS certificate for `myapp.apsissolutions.com`.
 
 ---
-Generated on June 25, 2025
