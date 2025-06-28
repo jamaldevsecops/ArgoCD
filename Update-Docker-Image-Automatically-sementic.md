@@ -73,8 +73,11 @@ Replace `jamaldevsecops` and `your-dockerhub-pat`.
 - If Image is public then no required to create this dockerhub secret for argocd.
 
 ## 6. Argo CD Image Updater ConfigMap
-Configure Argo CD Image Updater to track DockerHub with polling.
-
+Configure Argo CD Image Updater to track DockerHub with polling. Reference The Secret in Argo CD Image Updater ConfigMap
+```bash
+kubectl edit configmap argocd-image-updater-config -n argocd
+```
+Or, 
 ```bash
 kubectl -n argocd delete configmap argocd-image-updater-config
 ```
@@ -93,7 +96,7 @@ data:
         prefix: docker.io
         api_url: https://index.docker.io/v1/
         ping: yes
-        credentials: mydockerhub-creds
+        credentials: secret:argocd/mydockerhub-creds
 EOF
 ```
 
@@ -102,6 +105,16 @@ Apply:
    ```bash
    kubectl apply -f argocd-image-updater-config.yaml
    ```
+Label the Secret for Argo CD Image Updater
+```bash
+kubectl label secret mydockerhub-creds \
+  argocd.argoproj.io/secret-type=registry-credential \
+  -n argocd
+```
+Restart Image Updater
+```bash
+kubectl rollout restart deployment argocd-image-updater -n argocd
+```
 
 ## 7. GitHub Secret for Argo CD Image Updater (Write Access)
 Create a secret for Argo CD Image Updater to push updates to `kustomization.yaml`.
