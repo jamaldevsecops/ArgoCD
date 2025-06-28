@@ -73,7 +73,7 @@ Replace `jamaldevsecops` and `your-dockerhub-pat`.
 - If Image is public then no required to create this dockerhub secret for argocd.
 
 ## 6. Argo CD Image Updater ConfigMap
-Configure Argo CD Image Updater to track DockerHub with polling and Git write-back.
+Configure Argo CD Image Updater to track DockerHub with polling.
 
 ```bash
 kubectl -n argocd delete configmap argocd-image-updater-config
