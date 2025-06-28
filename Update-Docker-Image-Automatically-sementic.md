@@ -259,19 +259,32 @@ Define a `kustomization.yaml` to include specified resources.
 
 **YAML Manifest**:
 ```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - myapp-deployment-hpa-service.yaml
+  - myapp-namespace-and-nginx-ingress.yaml
+
+images:
+  - name: docker.io/jamaldevsecops/myapp
+    newTag: v1.1 # This tag will be automatically updated by Argo CD Image Updater
+```
+For multiple images:
+```yaml
 # Kustomization file for myapp
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - myapp-frontend-deployment-hpa-service.yaml
-  - myapp-backend-deployment-hpa-service.yaml
+  - myapp1-deployment-hpa-service.yaml
+  - myapp2-deployment-hpa-service.yaml
   - myapp-nginx-ingress.yaml
 
 images:
-  - name: docker.io/jamaldevsecops/myapp-frontend
+  - name: docker.io/jamaldevsecops/myapp1
     newTag: v1.1  # Placeholder; will be updated by Argo CD Image Updater
-  - name: docker.io/jamaldevsecops/myapp-backend
+  - name: docker.io/jamaldevsecops/myapp2
     newTag: v1.1  # Placeholder; will be updated by Argo CD Image Updater
 ```
 
