@@ -164,7 +164,7 @@ metadata:
       myapp-backend=docker.io/jamaldevsecops/myapp-backend:v1.x
 
     # Git write-back settings
-    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/mygit-creds
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/mygithub-creds
     argocd-image-updater.argoproj.io/git-branch: master
 
     # Use semver strategy for both images
