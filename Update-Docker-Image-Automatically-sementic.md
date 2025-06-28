@@ -159,21 +159,78 @@ metadata:
   namespace: argocd
   annotations:
     # Image list with semver tags
-    argocd-image-updater.argoproj.io/image-list: |
-      myapp-frontend=docker.io/jamaldevsecops/myapp-frontend:v1.x,
-      myapp-backend=docker.io/jamaldevsecops/myapp-backend:v1.x
+    argocd-image-updater.argoproj.io/image-list: myapp=docker.io/jamaldevsecops/myapp:v1.x
 
     # Git write-back settings
     argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/mygithub-creds
     argocd-image-updater.argoproj.io/git-branch: master
 
     # Use semver strategy for both images
-    argocd-image-updater.argoproj.io/myapp-frontend.update-strategy: semver
-    argocd-image-updater.argoproj.io/myapp-backend.update-strategy: semver
+    argocd-image-updater.argoproj.io/myapp.update-strategy: semver
 
     # Optional: force update if needed
-    argocd-image-updater.argoproj.io/myapp-frontend.force-update: "true"
-    argocd-image-updater.argoproj.io/myapp-backend.force-update: "true"
+    argocd-image-updater.argoproj.io/myapp.force-update: "true"
+
+spec:
+  project: myapp
+  source:
+    repoURL: https://github.com/jamaldevsecops/kubernetes.git
+    targetRevision: HEAD
+    path: argocd/k8s-manifest/myapp
+    kustomize: {}  # Optional, but explicit for Kustomize-based apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: myapp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+```
+For multiple images
+```yaml
+# Argo CD Project for myapp
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: myapp
+  namespace: argocd
+spec:
+  description: Project for myapp application
+  sourceRepos:
+    - https://github.com/jamaldevsecops/kubernetes.git
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+---
+# Argo CD Application for myapp with Image Updater
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp
+  namespace: argocd
+  annotations:
+    # Image list with semver tags
+    argocd-image-updater.argoproj.io/image-list: |
+      myapp1=docker.io/jamaldevsecops/myapp1:v1.x,
+      myapp2=docker.io/jamaldevsecops/myapp2:v1.x
+
+    # Git write-back settings
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/mygithub-creds
+    argocd-image-updater.argoproj.io/git-branch: master
+
+    # Use semver strategy for both images
+    argocd-image-updater.argoproj.io/myapp1.update-strategy: semver
+    argocd-image-updater.argoproj.io/myapp2.update-strategy: semver
+
+    # Optional: force update if needed
+    argocd-image-updater.argoproj.io/myapp1.force-update: "true"
+    argocd-image-updater.argoproj.io/myapp2.force-update: "true"
 
 spec:
   project: myapp
