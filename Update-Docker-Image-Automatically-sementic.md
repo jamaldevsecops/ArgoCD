@@ -110,7 +110,7 @@ Create a secret for Argo CD Image Updater to push updates to `kustomization.yaml
 # Kubernetes secret for GitHub write access
 kubectl create secret generic mygithub-creds \
   --namespace argocd \
-  --from-literal=username=Jamal-Apsis \
+  --from-literal=username=jamaldevsecops \
   --from-literal=password=ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
