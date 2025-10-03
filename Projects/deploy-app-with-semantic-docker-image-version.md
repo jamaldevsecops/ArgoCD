@@ -1,4 +1,4 @@
-# Runbook: Deploying a Web Application with ArgoCD and Image Updater
+# Deploying a Web Application with ArgoCD and Image Updater (Semantic Docker Image Tag)
 
 This runbook provides a **step-by-step procedure** to deploy a web application (`myapp`) in Kubernetes using **ArgoCD** and **ArgoCD Image Updater**, with built-in validation checks after each step.
 
