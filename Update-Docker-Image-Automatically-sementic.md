@@ -43,7 +43,7 @@ To create a DockerHub PAT with read-only permission for tracking private images:
 4. Generate and save the token (e.g., `dckr_pat_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`).
 
 ## 4. Namespace and DockerHub Secret for Pulling Private Image
-Create the `myapp` namespace and a DockerHub image pull secret named `mygithub-creds`.
+Create the `myapp` namespace and a DockerHub image pull secret named `mydockerhub-creds`.
 ```bash
 # Creating the myapp namespace and DockerHub image pull secret
 kubectl create namespace myapp
