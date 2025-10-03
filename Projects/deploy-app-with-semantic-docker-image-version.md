@@ -329,12 +329,17 @@ Test application in browser at `https://myapp.apsissolutions.com`.
 ## 11. GitHub Repo Structure
 
 ```
-├── argocd
-│   └── k8s-manifest
-│       └── myapp
-│           ├── kustomization.yaml
-│           ├── myapp-deployment-hpa-service.yaml
-│           └── myapp-nginx-ingress.yaml
+📦 kubernetes/
+ ┣ 📂 argocd/
+ ┃ ┣ 📂 k8s-manifest/
+ ┃ ┃ ┗ 📂 myapp/
+ ┃ ┃   ┣ 📜 kustomization.yaml
+ ┃ ┃   ┣ 📜 myapp-deployment-hpa-service.yaml
+ ┃ ┃   ┣ 📜 myapp-nginx-ingress.yaml
+ ┃ ┃   ┗ 📜 README.md (docs for app)
+ ┣ 📂 base/
+ ┃ ┗ (optional: reusable manifests for multiple apps)
+ ┗ 📜 README.md
 ```
 
 ✅ **Validation**:
