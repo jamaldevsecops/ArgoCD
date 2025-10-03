@@ -69,6 +69,9 @@ kubectl get secret mydockerhub-creds -n myapp -o yaml | \
 ```
 
 Now configure `argocd-image-updater-config`:
+```bash
+kubectl edit configmap argocd-image-updater-config -n argocd
+```
 ```yaml
 apiVersion: v1
 kind: ConfigMap
