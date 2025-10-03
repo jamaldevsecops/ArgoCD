@@ -104,10 +104,13 @@ Ensure registry config is loaded.
 ## 5. Create a GitHub Secret for Write-back Access
 
 ```bash
+export GH_USER="jamaldevsecops"
+export GH_PASS="ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
 kubectl create secret generic mygithub-creds \
-  --namespace argocd \
-  --from-literal=username=jamaldevsecops \
-  --from-literal=password=ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  --from-literal=username="$GH_USER" \
+  --from-literal=password="$GH_PASS" \
+  --namespace argocd
 ```
 🔐 Recommendation: Replace plain secrets with SealedSecrets or ExternalSecrets for secure management.
 
