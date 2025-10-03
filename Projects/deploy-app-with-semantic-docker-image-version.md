@@ -37,11 +37,20 @@ You should see the `myapp` namespace.
 ## 3. Create a DockerHub Secret for Pulling Private Images
 
 ```bash
+# safer: set env vars to avoid storing secrets in shell history
+export DH_USER="jamaldevsecops"
+export DH_PASS="dckr_pat_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
 kubectl create secret docker-registry mydockerhub-creds \
   --docker-server=https://index.docker.io/v1/ \
-  --docker-username="jamaldevsecops" \
-  --docker-password="dckr_pat_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" \
+  --docker-username="$DH_USER" \
+  --docker-password="$DH_PASS" \
   -n myapp
+```
+Update the Deployment to use the secret:
+```
+imagePullSecrets:
+- name: mydockerhub-creds
 ```
 
 ✅ **Validation**:
@@ -97,6 +106,7 @@ kubectl create secret generic mygithub-creds \
   --from-literal=username=jamaldevsecops \
   --from-literal=password=ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
+🔐 Recommendation: Replace plain secrets with SealedSecrets or ExternalSecrets for secure management.
 
 ✅ **Validation**:
 ```bash
@@ -340,6 +350,15 @@ Test application in browser at `https://myapp.apsissolutions.com`.
  ┣ 📂 base/
  ┃ ┗ (optional: reusable manifests for multiple apps)
  ┗ 📜 README.md
+```
+## 12. Improvements & Best Practices
+```
+🔐 Use SealedSecrets / ExternalSecrets for managing GitHub and DockerHub credentials.
+🔒 Add RBAC restrictions in ArgoCD Project (limit deployment to myapp namespace only).
+🔄 Use sync hooks for complex deployments (e.g., DB migrations before rollout).
+⚖️ Define resource requests/limits for CPU and memory to ensure proper scheduling.
+📈 Integrate monitoring (ServiceMonitor/Prometheus/Grafana) for metrics and alerting.
+🧹 Enable prune and self-heal in ArgoCD sync policies for GitOps consistency.
 ```
 
 ✅ **Validation**:
