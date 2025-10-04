@@ -1,4 +1,4 @@
-# Deploying a Web Application with ArgoCD and Image Updater (Semantic Docker Image Tag - jamaldevsecops/myapp22@sha256:481e4358870b417....)
+# Deploying a Web Application with ArgoCD and Image Updater (Semantic Docker Image Tag - jamaldevsecops/myapp2@sha256:481e4358870b417....)
 
 This runbook provides a **step-by-step procedure** to deploy a web application (`myapp2`) in Kubernetes using **ArgoCD** and **ArgoCD Image Updater**, with built-in validation checks after each step.
 
