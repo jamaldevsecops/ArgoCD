@@ -101,6 +101,7 @@ It’s part of the **Argo Project ecosystem**, which includes tools like Argo CD
 - [Argo Project Homepage](https://argoproj.github.io/)
 
 ---
+Next: [Argo Rollouts Installation Guide](https://github.com/jamaldevsecops/ArgoCD/blob/master/argo-rollouts/docs/1.Argo-Rollouts-Installation.md)  
 
 *Author: Jamal Hossain*  
 *Date: 2025-10-10*  
